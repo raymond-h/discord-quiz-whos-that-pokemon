@@ -1,0 +1,38 @@
+{
+    "name": "whos-that-pokemon",
+    "description": "Discord bot for guessing Pokemon!",
+    "author": "Raymond Hammarling",
+    "license": "MIT",
+    "ava": {
+        "require": [
+            "babel-register"
+        ],
+        "babel": "inherit"
+    },
+    "scripts": {
+        "lint": "eslint src/ test/",
+        "test": "ava",
+        "build": "babel -d lib/ src/",
+        "watch:lint": "onchange src/ -- run-s lint",
+        "watch:test": "ava -w",
+        "watch:build": "babel -d lib/ src/ -w",
+        "watch": "onchange src/ test/ -- run-s lint test build",
+        "prepublish": "run-s lint test build"
+    },
+    "dependencies": {
+        "babel-runtime": "^6.25.0",
+        "discord.js": "^11.1.0",
+        "rxjs": "^5.4.3"
+    },
+    "devDependencies": {
+        "ava": "^0.21.0",
+        "babel-cli": "^6.24.1",
+        "babel-eslint": "^7.2.3",
+        "babel-plugin-transform-runtime": "^6.23.0",
+        "babel-preset-env": "^1.6.0",
+        "babel-register": "^6.24.1",
+        "eslint": "^4.4.1",
+        "npm-run-all": "^4.0.2",
+        "onchange": "^3.2.1"
+    }
+}

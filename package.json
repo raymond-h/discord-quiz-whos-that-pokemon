@@ -9,6 +9,9 @@
         ],
         "babel": "inherit"
     },
+    "engines": {
+        "node": ">=6.10.0 <9.0.0"
+    },
     "scripts": {
         "lint": "eslint src/ test/",
         "test": "ava",
@@ -17,7 +20,9 @@
         "watch:test": "ava -w",
         "watch:build": "babel -d lib/ src/ -w",
         "watch": "onchange src/ test/ -- run-s lint test build",
-        "prepublish": "run-s lint test build"
+        "prepublish": "run-s lint test build",
+        "heroku-postbuild": "npm install --dev && npm run build",
+        "start": "node lib/"
     },
     "dependencies": {
         "babel-runtime": "^6.25.0",
@@ -37,5 +42,9 @@
         "eslint": "^4.4.1",
         "npm-run-all": "^4.0.2",
         "onchange": "^3.2.1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/raymond-h/discord-quiz-whos-that-pokemon"
     }
 }

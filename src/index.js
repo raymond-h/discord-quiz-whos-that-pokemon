@@ -86,6 +86,17 @@ function quizPokemonObservable(cache, guessesObs) {
 client.login(process.env.DISCORD_TOKEN)
 .then(async () => {
 
+    if(process.env.DISCORD_CLIENT_ID != null) {
+        const clientId = process.env.DISCORD_CLIENT_ID;
+        const inviteUrl = `https://discordapp.com/oauth2/authorize?&client_id=${clientId}&scope=bot&permissions=0`;
+
+        console.log(`Invite URL: ${inviteUrl}`);
+    }
+    else {
+        console.log('*** DISCORD_CLIENT_ID not specified; no invite URL will be generated.');
+        console.log('*** The bot will not respond to the `invite` either.');
+    }
+
     const cache = new Keyv({ ttl: 6*60*60*1000 });
 
     const msgObs = Rx.Observable.fromEvent(client, 'message');
@@ -126,7 +137,8 @@ client.login(process.env.DISCORD_TOKEN)
         }
     };
 
-    await startGameObs
+    await Promise.all([
+        startGameObs
         .mergeMap(channel =>
             quizPokemonObservable(cache, msgObs)
             .repeat(50)
@@ -136,6 +148,19 @@ client.login(process.env.DISCORD_TOKEN)
             .concat(Rx.Observable.of({ type: 'end' }))
             .mergeMap(ev => actions[ev.type](channel, ev) )
         )
-        .toPromise();
+        .toPromise(),
+
+        msgToMeObs
+        .filter(() => process.env.DISCORD_CLIENT_ID != null)
+        .filter(msg => msg.author.id == process.env.DISCORD_OWNER_ID)
+        .filter(msg => /invite/.test(msg.cleanContent))
+        .mergeMap(async msg => {
+            const clientId = process.env.DISCORD_CLIENT_ID;
+            const inviteUrl = `https://discordapp.com/oauth2/authorize?&client_id=${clientId}&scope=bot&permissions=0`;
+
+            await msg.author.send(`Here's an invite URL: ${inviteUrl}`);
+        })
+        .toPromise()
+    ]);
 })
 .catch(e => console.error(e.stack));

@@ -1,3 +1,5 @@
+import assert from 'assert';
+
 import Rx from 'rxjs/Rx';
 import Discord from 'discord.js';
 import Keyv from 'keyv';
@@ -83,7 +85,12 @@ function quizPokemonObservable(cache, guessesObs) {
     });
 }
 
-client.login(process.env.DISCORD_TOKEN)
+Promise.resolve()
+.then(() => {
+    assert.ok(process.env.DISCORD_TOKEN != null, 'DISCORD_TOKEN is not specified, unable to log in.');
+
+    return client.login(process.env.DISCORD_TOKEN);
+})
 .then(async () => {
 
     if(process.env.DISCORD_CLIENT_ID != null) {
@@ -151,7 +158,9 @@ client.login(process.env.DISCORD_TOKEN)
         .toPromise(),
 
         msgToMeObs
-        .filter(() => process.env.DISCORD_CLIENT_ID != null)
+        .filter(() =>
+            process.env.DISCORD_CLIENT_ID != null && process.env.DISCORD_OWNER_ID != null
+        )
         .filter(msg => msg.author.id == process.env.DISCORD_OWNER_ID)
         .filter(msg => /invite/.test(msg.cleanContent))
         .mergeMap(async msg => {

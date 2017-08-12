@@ -74,7 +74,7 @@ function quizPokemonObservable(cache, guessesObs) {
                 Rx.Observable.empty(),
 
                 // timeout observable
-                Rx.Observable.timer(15 * 1000)
+                Rx.Observable.timer(25 * 1000)
             )
             .map(ev => {
                 ev.pokemon = pkmn;

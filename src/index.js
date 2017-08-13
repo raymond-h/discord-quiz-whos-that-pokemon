@@ -43,6 +43,7 @@ function quizPokemonObservable(cache, guessesObs) {
             Rx.Observable.defer(() =>
                 pokemonModel.getRandom(cache)
             )
+            .retry(3)
             .share();
 
         const randomFlavorTextObs =
@@ -144,6 +145,10 @@ Promise.resolve()
 
         async end(channel) {
             await channel.send(`That's all, folks!`);
+        },
+
+        async error(channel, ev) {
+            await channel.send(`Oh my, looks like an error occured! \`${ev.error}\``);
         }
     };
 
@@ -156,6 +161,7 @@ Promise.resolve()
                 endGameObs.filter(endChan => channel == endChan)
             )
             .concat(Rx.Observable.of({ type: 'end' }))
+            .catch(error => Rx.Observable.of({ type: 'error', error }))
             .mergeMap(ev => actions[ev.type](channel, ev) )
         )
         .toPromise(),

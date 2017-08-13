@@ -53,6 +53,7 @@ function quizPokemonObservable(cache, guessesObs) {
                     pkmn.species.flavor_text_entries.filter(isLanguage('en'))
                 )
                 .flavor_text
+                .replace(/[\f]/g, '\n')
             );
 
         const nameObs =

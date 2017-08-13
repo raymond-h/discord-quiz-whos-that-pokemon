@@ -13,7 +13,7 @@ import {
     getMoveByName, getVersionByName,
     getMoveLearnMethodByName
 } from './pokemon';
-import { minLevenshtein, thisAsParam } from './util';
+import { minLevenshtein, thisAsParam, randomPartialString } from './util';
 
 const client = new Discord.Client();
 
@@ -103,6 +103,13 @@ function getHintObservable(cache, pkmn, hintType) {
             }));
         }
 
+        case 'partialName': {
+            return Rx.Observable.of({
+                hintType,
+                name: randomPartialString(getNameOf(pkmn), 0.2, 0.45)
+            });
+        }
+
         default: return Rx.Observable.throw(
             new Error(`Unknown hint type '${hintType}'`)
         );
@@ -133,7 +140,7 @@ function quizPokemonObservable(cache, guessesObs) {
             .map(pkmn => pkmn.name)
             .map(fixPokemonName);
 
-        const hintTypesObs = Rx.Observable.from(R.repeat('move', 4));
+        const hintTypesObs = Rx.Observable.from(R.repeat('partialName', 4));
 
         const hintsObs =
             randomPokemonObs
@@ -182,6 +189,7 @@ function hintToString(hint) {
         case 'stat': return `Its base ${hint.stat} is **${hint.baseValue}**`;
         case 'genus': return `It is known as the **${hint.genus} Pokemon**`;
         case 'move': return `In **${hint.version}**, it learns **${hint.move}** via **${hint.learnMethod}**`;
+        case 'partialName': return `Its name is **${hint.name.replace(/_/g, '\\_')}**`;
 
         default: '???';
     }

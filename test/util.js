@@ -1,7 +1,7 @@
 import test from 'ava';
 import jsv from 'jsverify';
 
-import { substrings, minLevenshtein, thisAsParam } from '../src/util';
+import { substrings, minLevenshtein, thisAsParam, randomRange, partialString } from '../src/util';
 
 const nonzeroNatArb = jsv.suchthat('nat', n => n > 0);
 
@@ -56,4 +56,36 @@ test('thisAsParam with params curried', t => {
     function surround(str) { return str+this+str; }
 
     t.is(thisAsParam(surround)('WOW')('hey'), 'WOWheyWOW');
+});
+
+test('randomRange', t => {
+    jsv.assertForall('number', 'number', (a, b) => {
+        const start = Math.min(a, b);
+        const end = Math.max(a, b);
+        const randVal = randomRange(a, b);
+
+        return start <= randVal && randVal <= end;
+    });
+
+    t.pass();
+});
+
+test('partialString', t => {
+    jsv.assertForall('string', 'number 1', (str, frac) => {
+        const partStr = partialString(str, frac).replace(/_+$/, '');
+
+        return str.substring(0, partStr.length) === partStr;
+    });
+
+    t.pass();
+});
+
+test('partialString same length', t => {
+    jsv.assertForall('string', 'number 0 1', (str, frac) => {
+        const partStr = partialString(str, frac);
+
+        return str.length === partStr.length;
+    });
+
+    t.pass();
 });

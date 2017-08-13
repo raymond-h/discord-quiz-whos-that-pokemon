@@ -30,3 +30,19 @@ export function minLevenshtein(haystack, needle) {
 export function thisAsParam(fn) {
     return R.curryN(fn.length+1, (...args) => fn.apply(R.last(args), R.init(args)));
 }
+
+export function randomRange(a = 0, b = 1) {
+    const start = Math.min(a, b);
+    const end = Math.max(a, b);
+
+    return Math.random() * (end - start) + start;
+}
+
+export function partialString(str, frac) {
+    const length = Math.floor(str.length * frac);
+    const restLength = str.length - length;
+
+    return str.substr(0, length) + R.repeat('_', restLength).join('');
+};
+
+export const randomPartialString = (str, start, end) => partialString(str, randomRange(start, end));

@@ -181,4 +181,10 @@ Promise.resolve()
         .toPromise()
     ]);
 })
-.catch(e => console.error(e.stack));
+.catch(e => {
+    console.error(e.stack);
+
+    setTimeout(() => {
+        process.exit(1);
+    }, 100);
+});

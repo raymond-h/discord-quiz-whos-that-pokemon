@@ -6,6 +6,7 @@ import Keyv from 'keyv';
 import randomItem from 'random-item';
 
 import { pokemon as pokemonModel } from './pokemon';
+import { minLevenshtein } from './util';
 
 const client = new Discord.Client();
 
@@ -53,22 +54,23 @@ function quizPokemonObservable(cache, guessesObs) {
                 .flavor_text
             );
 
-        const nameRegexObs =
+        const nameObs =
             randomPokemonObs
             .map(pkmn => pkmn.name)
-            .map(fixPokemonName)
-            .map(name => new RegExp(name, 'ig'));
+            .map(fixPokemonName);
 
         return Rx.Observable.combineLatest(
-            randomPokemonObs, randomFlavorTextObs, nameRegexObs
+            randomPokemonObs, randomFlavorTextObs, nameObs
         )
-        .mergeMap(([pkmn, flavorText, nameRegex]) =>
-            quizObservable(
+        .mergeMap(([pkmn, flavorText, name]) => {
+            const nameRegex = new RegExp(name, 'ig');
+
+            return quizObservable(
                 // question
                 `**Who's that Pokémon!?** \`\`\`${flavorText.replace(nameRegex, '[REDACTED]')}\`\`\``,
 
                 // observable of right answers
-                guessesObs.filter(msg => nameRegex.test(msg.cleanContent)),
+                guessesObs.filter(msg => minLevenshtein(msg.cleanContent, name) <= 2),
 
                 // observable of hints
                 Rx.Observable.empty(),
@@ -79,8 +81,8 @@ function quizPokemonObservable(cache, guessesObs) {
             .map(ev => {
                 ev.pokemon = pkmn;
                 return ev;
-            })
-        )
+            });
+        })
         .startWith({ type: 'fetchingPokemon' });
     });
 }

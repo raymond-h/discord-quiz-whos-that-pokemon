@@ -32,7 +32,8 @@
         "levenshtein": "^1.0.5",
         "ramda": "^0.24.1",
         "random-item": "^1.0.0",
-        "rxjs": "^5.4.3"
+        "rxjs": "^5.4.3",
+        "rxjs-extra": "^0.1.1"
     },
     "devDependencies": {
         "ava": "^0.21.0",

@@ -1,6 +1,7 @@
 import assert from 'assert';
 
 import Rx from 'rxjs/Rx';
+import { takeWhileInclusive } from 'rxjs-extra/operator/takeWhileInclusive';
 import Discord from 'discord.js';
 import Keyv from 'keyv';
 import randomItem from 'random-item';
@@ -23,18 +24,18 @@ function fixPokemonName(name) {
 }
 
 function quizObservable(question, correctAnswerObs, hintsObs, timeoutObs) {
-    const sharedCorrectAnswerObs = correctAnswerObs.share();
-    const sharedTimeoutObs = timeoutObs.share();
-
-    const endObs = sharedCorrectAnswerObs.merge(sharedTimeoutObs).delay(10);
 
     return Rx.Observable.of({ type: 'question', question })
         .concat(Rx.Observable.merge(
-            sharedCorrectAnswerObs.map(answer => ({ type: 'correctAnswer', answer })),
+            correctAnswerObs.map(answer => ({ type: 'correctAnswer', answer })),
             hintsObs.map(hint => ({ type: 'hint', hint })),
-            sharedTimeoutObs.map(() => ({ type: 'timeout' }))
+            timeoutObs.map(() => ({ type: 'timeout' }))
         ))
-        .takeUntil(endObs);
+        .let(obs =>
+            takeWhileInclusive.call(
+                obs, ev => !['correctAnswer', 'timeout'].includes(ev.type)
+            )
+        );
 }
 
 function quizPokemonObservable(cache, guessesObs) {

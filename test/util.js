@@ -1,7 +1,7 @@
 import test from 'ava';
 import jsv from 'jsverify';
 
-import { substrings, minLevenshtein } from '../src/util';
+import { substrings, minLevenshtein, thisAsParam } from '../src/util';
 
 const nonzeroNatArb = jsv.suchthat('nat', n => n > 0);
 
@@ -38,4 +38,22 @@ test('minimum levenshtein for substring == 0', t => {
     );
 
     t.pass();
+});
+
+test('thisAsParam with no params', t => {
+    function double() { return this+this; }
+
+    t.is(thisAsParam(double)('hey'), 'heyhey');
+});
+
+test('thisAsParam with params', t => {
+    function surround(str) { return str+this+str; }
+
+    t.is(thisAsParam(surround)('WOW', 'hey'), 'WOWheyWOW');
+});
+
+test('thisAsParam with params curried', t => {
+    function surround(str) { return str+this+str; }
+
+    t.is(thisAsParam(surround)('WOW')('hey'), 'WOWheyWOW');
 });

@@ -7,7 +7,7 @@ import Keyv from 'keyv';
 import randomItem from 'random-item';
 
 import { pokemon as pokemonModel } from './pokemon';
-import { minLevenshtein } from './util';
+import { minLevenshtein, thisAsParam } from './util';
 
 const client = new Discord.Client();
 
@@ -31,10 +31,8 @@ function quizObservable(question, correctAnswerObs, hintsObs, timeoutObs) {
             hintsObs.map(hint => ({ type: 'hint', hint })),
             timeoutObs.map(() => ({ type: 'timeout' }))
         ))
-        .let(obs =>
-            takeWhileInclusive.call(
-                obs, ev => !['correctAnswer', 'timeout'].includes(ev.type)
-            )
+        .let(thisAsParam(takeWhileInclusive)(
+            ev => !['correctAnswer', 'timeout'].includes(ev.type))
         );
 }
 

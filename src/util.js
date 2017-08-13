@@ -26,3 +26,7 @@ export function minLevenshtein(haystack, needle) {
         .map(s => levenshtein(s, needle))
         .reduce(min, Infinity);
 }
+
+export function thisAsParam(fn) {
+    return R.curryN(fn.length+1, (...args) => fn.apply(R.last(args), R.init(args)));
+}

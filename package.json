@@ -20,7 +20,7 @@
         "watch:test": "ava -w",
         "watch:build": "babel -d lib/ src/ -w",
         "watch": "onchange src/ test/ -- run-s lint test build",
-        "prepublish": "run-s lint test build",
+        "prepublishOnly": "run-s lint test build",
         "heroku-postbuild": "npm install --dev && npm run build",
         "start": "node lib/"
     },

@@ -157,6 +157,8 @@ function quizPokemonObservable(cache, guessesObs) {
             randomPokemonObs, randomFlavorTextObs, nameObs, hintsObs
         )
         .mergeMap(([pkmn, flavorText, name, hints]) => {
+            const timeoutSeconds = 25;
+            const hintInterval = timeoutSeconds / (hints.length+1);
             const nameRegex = new RegExp(name, 'ig');
 
             return quizObservable(
@@ -167,12 +169,12 @@ function quizPokemonObservable(cache, guessesObs) {
                 guessesObs.filter(msg => minLevenshtein(msg.cleanContent, name) <= 2),
 
                 // observable of hints
-                Rx.Observable.interval(5 * 1000)
+                Rx.Observable.interval(hintInterval * 1000)
                 .take(hints.length)
                 .map(i => hints[i]),
 
                 // timeout observable
-                Rx.Observable.timer(25 * 1000)
+                Rx.Observable.timer(timeoutSeconds * 1000)
             )
             .map(ev => {
                 ev.pokemon = pkmn;

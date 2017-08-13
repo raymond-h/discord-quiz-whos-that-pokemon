@@ -118,6 +118,9 @@ function getHintObservable(cache, pkmn, hintType) {
 
 function quizPokemonObservable(cache, guessesObs) {
     return Rx.Observable.defer(() => {
+        const hintCount = 4;
+        const timeoutSeconds = 25;
+        
         const randomPokemonObs =
             Rx.Observable.defer(() =>
                 getRandomPokemon(cache)
@@ -140,7 +143,13 @@ function quizPokemonObservable(cache, guessesObs) {
             .map(pkmn => pkmn.name)
             .map(fixPokemonName);
 
-        const hintTypesObs = Rx.Observable.from(R.repeat('partialName', 4));
+        const hintTypesObs =
+            Rx.Observable.range(0, hintCount)
+            .map(i =>
+                (i === hintCount-1) ?
+                'partialName' :
+                randomItem(['type', 'stat', 'move', 'genus'])
+            );
 
         const hintsObs =
             randomPokemonObs
@@ -157,7 +166,6 @@ function quizPokemonObservable(cache, guessesObs) {
             randomPokemonObs, randomFlavorTextObs, nameObs, hintsObs
         )
         .mergeMap(([pkmn, flavorText, name, hints]) => {
-            const timeoutSeconds = 25;
             const hintInterval = timeoutSeconds / (hints.length+1);
             const nameRegex = new RegExp(name, 'ig');
 

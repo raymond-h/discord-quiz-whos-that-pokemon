@@ -1,12 +1,13 @@
 import assert from 'assert';
 
 import Rx from 'rxjs/Rx';
+import R from 'ramda';
 import { takeWhileInclusive } from 'rxjs-extra/operator/takeWhileInclusive';
 import Discord from 'discord.js';
 import Keyv from 'keyv';
 import randomItem from 'random-item';
 
-import { pokemon as pokemonModel } from './pokemon';
+import { getRandomPokemon, getTypeByName } from './pokemon';
 import { minLevenshtein, thisAsParam } from './util';
 
 const client = new Discord.Client();
@@ -36,11 +37,32 @@ function quizObservable(question, correctAnswerObs, hintsObs, timeoutObs) {
         );
 }
 
+// possible hint types: 'type', 'stat', 'move', 'genus', 'partialName'
+function getHintObservable(cache, pkmn, hintType) {
+    switch(hintType) {
+        case 'type': {
+            return Rx.Observable.from(
+                R.sortBy(R.prop('slot'), pkmn.types)
+            )
+            .mergeMap(type => getTypeByName(cache, type.type.name))
+            .map(type => type.names.find(isLanguage('en')).name )
+            .toArray()
+            .map(types => ({
+                hintType, types
+            }))
+        }
+
+        default: return Rx.Observable.throw(
+            new Error(`Unknown hint type '${hintType}'`)
+        );
+    }
+}
+
 function quizPokemonObservable(cache, guessesObs) {
     return Rx.Observable.defer(() => {
         const randomPokemonObs =
             Rx.Observable.defer(() =>
-                pokemonModel.getRandom(cache)
+                getRandomPokemon(cache)
             )
             .retry(3)
             .share();
@@ -60,10 +82,20 @@ function quizPokemonObservable(cache, guessesObs) {
             .map(pkmn => pkmn.name)
             .map(fixPokemonName);
 
+        const hintTypesObs = Rx.Observable.of('type', 'type', 'type');
+
+        const hintsObs =
+            randomPokemonObs
+            .mergeMap(pkmn =>
+                hintTypesObs
+                .mergeMap(hintType => getHintObservable(cache, pkmn, hintType))
+            )
+            .toArray();
+
         return Rx.Observable.combineLatest(
-            randomPokemonObs, randomFlavorTextObs, nameObs
+            randomPokemonObs, randomFlavorTextObs, nameObs, hintsObs
         )
-        .mergeMap(([pkmn, flavorText, name]) => {
+        .mergeMap(([pkmn, flavorText, name, hints]) => {
             const nameRegex = new RegExp(name, 'ig');
 
             return quizObservable(
@@ -74,7 +106,9 @@ function quizPokemonObservable(cache, guessesObs) {
                 guessesObs.filter(msg => minLevenshtein(msg.cleanContent, name) <= 2),
 
                 // observable of hints
-                Rx.Observable.empty(),
+                Rx.Observable.interval(5 * 1000)
+                .take(hints.length)
+                .map(i => hints[i]),
 
                 // timeout observable
                 Rx.Observable.timer(25 * 1000)
@@ -86,6 +120,14 @@ function quizPokemonObservable(cache, guessesObs) {
         })
         .startWith({ type: 'fetchingPokemon' });
     });
+}
+
+function hintToString(hint) {
+    switch(hint.hintType) {
+        case 'type': return `Its type is **${hint.types.join('-')}**`;
+
+        default: '???';
+    }
 }
 
 Promise.resolve()
@@ -132,7 +174,7 @@ Promise.resolve()
         },
 
         async hint(channel, ev) {
-            await channel.send(`Here's a hint: ${ev.hint}`);
+            await channel.send(`Here's a hint: ${hintToString(ev.hint)}`);
         },
 
         async timeout(channel, ev) {
@@ -148,6 +190,7 @@ Promise.resolve()
         },
 
         async error(channel, ev) {
+            console.error(ev.error.stack);
             await channel.send(`Oh my, looks like an error occured! \`${ev.error}\``);
         }
     };

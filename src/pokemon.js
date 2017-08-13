@@ -14,25 +14,7 @@ async function get(cache, url) {
     return res.body;
 }
 
-async function getCount(cache) {
-    console.log('getCount');
-    const data = await get(cache, `${baseUrl}/pokemon/?limit=0`);
-
-    return data.count;
-}
-
-async function getById(cache, id) {
-    console.log('getById', id);
-    const data = await get(cache, `${baseUrl}/pokemon/${id}/`);
-    const speciesData = await get(cache, data.species.url);
-
-    data.species = speciesData;
-
-    return data;
-}
-
-async function getRandom(cache) {
-    console.log('getRandom');
+export async function getRandomPokemon(cache) {
     const result = await get(cache, `${baseUrl}/pokemon/?limit=10000`);
 
     const randomResult = randomItem(result.results);
@@ -43,4 +25,6 @@ async function getRandom(cache) {
     return data;
 }
 
-export const pokemon = { getCount, getById, getRandom };
+export async function getTypeByName(cache, name) {
+    return await get(cache, `${baseUrl}/type/${name}/`);
+}

@@ -108,7 +108,8 @@ Promise.resolve()
 
     const cache = new Keyv({ ttl: 6*60*60*1000 });
 
-    const msgObs = Rx.Observable.fromEvent(client, 'message');
+    const msgObs = Rx.Observable.fromEvent(client, 'message')
+        .filter(msg => msg.author != client.user);
 
     const msgToMeObs = msgObs.filter(msg => msg.isMentioned(client.user));
 

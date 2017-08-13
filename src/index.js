@@ -65,7 +65,7 @@ function quizPokemonObservable(cache, guessesObs) {
         .mergeMap(([pkmn, flavorText, nameRegex]) =>
             quizObservable(
                 // question
-                `Who's that Pokémon!? \`\`\`${flavorText.replace(nameRegex, '[REDACTED]')}\`\`\``,
+                `**Who's that Pokémon!?** \`\`\`${flavorText.replace(nameRegex, '[REDACTED]')}\`\`\``,
 
                 // observable of right answers
                 guessesObs.filter(msg => nameRegex.test(msg.cleanContent)),
@@ -124,7 +124,7 @@ Promise.resolve()
         },
 
         async correctAnswer(channel, ev) {
-            await channel.send(`${ev.answer.author} got it right!! It was ${getNameOf(ev.pokemon)}!!`);
+            await channel.send(`${ev.answer.author} got it right!! It was **${getNameOf(ev.pokemon)}**!!`);
         },
 
         async hint(channel, ev) {
@@ -132,7 +132,7 @@ Promise.resolve()
         },
 
         async timeout(channel, ev) {
-            await channel.send(`No one answered it right!! It was ${getNameOf(ev.pokemon)}!`);
+            await channel.send(`No one answered it right!! It was **${getNameOf(ev.pokemon)}**!`);
         },
 
         async fetchingPokemon(channel) {

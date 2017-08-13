@@ -7,7 +7,12 @@ import Discord from 'discord.js';
 import Keyv from 'keyv';
 import randomItem from 'random-item';
 
-import { getRandomPokemon, getTypeByName, getStatByName } from './pokemon';
+import {
+    getRandomPokemon, getTypeByName,
+    getStatByName, getVersionGroupByName,
+    getMoveByName, getVersionByName,
+    getMoveLearnMethodByName
+} from './pokemon';
 import { minLevenshtein, thisAsParam } from './util';
 
 const client = new Discord.Client();
@@ -72,6 +77,32 @@ function getHintObservable(cache, pkmn, hintType) {
             });
         }
 
+        case 'move': {
+            const move = randomItem(pkmn.moves);
+            const versionGroup = randomItem(move.version_group_details);
+
+            return Rx.Observable.combineLatest(
+                getMoveByName(cache, move.move.name),
+
+                Rx.Observable.from(
+                    getVersionGroupByName(cache, versionGroup.version_group.name)
+                )
+                .mergeMap(versionGroup => {
+                    const version = randomItem(versionGroup.versions);
+
+                    return getVersionByName(cache, version.name);
+                }),
+
+                getMoveLearnMethodByName(cache, versionGroup.move_learn_method.name)
+            )
+            .map(([move, version, moveLearnMethod]) => ({
+                hintType,
+                move: move.names.find(isLanguage('en')).name,
+                version: version.names.find(isLanguage('en')).name,
+                learnMethod: moveLearnMethod.names.find(isLanguage('en')).name
+            }));
+        }
+
         default: return Rx.Observable.throw(
             new Error(`Unknown hint type '${hintType}'`)
         );
@@ -102,7 +133,7 @@ function quizPokemonObservable(cache, guessesObs) {
             .map(pkmn => pkmn.name)
             .map(fixPokemonName);
 
-        const hintTypesObs = Rx.Observable.of('genus', 'stat', 'type');
+        const hintTypesObs = Rx.Observable.from(R.repeat('move', 4));
 
         const hintsObs =
             randomPokemonObs
@@ -150,6 +181,7 @@ function hintToString(hint) {
         case 'type': return `Its type is **${hint.types.join('-')}**`;
         case 'stat': return `Its base ${hint.stat} is **${hint.baseValue}**`;
         case 'genus': return `It is known as the **${hint.genus} Pokemon**`;
+        case 'move': return `In **${hint.version}**, it learns **${hint.move}** via **${hint.learnMethod}**`;
 
         default: '???';
     }

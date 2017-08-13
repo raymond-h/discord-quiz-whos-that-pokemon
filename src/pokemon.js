@@ -32,3 +32,20 @@ export async function getTypeByName(cache, name) {
 export async function getStatByName(cache, name) {
     return await get(cache, `${baseUrl}/stat/${name}/`);
 }
+
+export async function getVersionGroupByName(cache, name) {
+    return await get(cache, `${baseUrl}/version-group/${name}/`);
+}
+
+export async function getVersionByName(cache, name) {
+    return await get(cache, `${baseUrl}/version/${name}/`);
+}
+
+export async function getMoveByName(cache, name) {
+    return await get(cache, `${baseUrl}/move/${name}/`);
+}
+
+export async function getMoveLearnMethodByName(cache, name) {
+    return await get(cache, `${baseUrl}/move-learn-method/${name}/`);
+}
+

@@ -99,7 +99,8 @@ function getHintObservable(cache, pkmn, hintType) {
                 hintType,
                 move: move.names.find(isLanguage('en')).name,
                 version: version.names.find(isLanguage('en')).name,
-                learnMethod: moveLearnMethod.names.find(isLanguage('en')).name
+                learnMethod: moveLearnMethod.names.find(isLanguage('en')).name,
+                level: versionGroup.level_learned_at
             }));
         }
 
@@ -198,7 +199,12 @@ function hintToString(hint) {
         case 'type': return `Its type is **${hint.types.join('-')}**`;
         case 'stat': return `Its base ${hint.stat} is **${hint.baseValue}**`;
         case 'genus': return `It is known as the **${hint.genus} Pokemon**`;
-        case 'move': return `In **${hint.version}**, it learns **${hint.move}** via **${hint.learnMethod}**`;
+        case 'move': {
+            const levelAtStr = (hint.level > 0) ? ` at **level ${hint.level}**` : '';
+
+            return `In **${hint.version}**, it learns` +
+                ` **${hint.move}** via **${hint.learnMethod}**` + levelAtStr;
+        }
         case 'partialName': return `Its name is **${hint.name.replace(/_/g, '\\_')}**`;
 
         default: '???';

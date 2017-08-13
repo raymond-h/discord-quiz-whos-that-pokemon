@@ -119,8 +119,11 @@ function getHintObservable(cache, pkmn, hintType) {
 
 function quizPokemonObservable(cache, guessesObs) {
     return Rx.Observable.defer(() => {
-        const hintCount = 4;
-        const timeoutSeconds = 25;
+        const hintCount = process.env.POKEQUIZ_DEFAULT_HINTS != null ?
+            parseInt(process.env.POKEQUIZ_DEFAULT_HINTS, 10) : 4;
+
+        const timeoutSeconds = process.env.POKEQUIZ_DEFAULT_TIMEOUT != null ?
+            parseInt(process.env.POKEQUIZ_DEFAULT_TIMEOUT, 10) : 40;
         
         const randomPokemonObs =
             Rx.Observable.defer(() =>

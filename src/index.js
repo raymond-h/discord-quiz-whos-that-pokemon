@@ -66,6 +66,12 @@ function getHintObservable(cache, pkmn, hintType) {
             )
         }
 
+        case 'genus': {
+            return Rx.Observable.of({
+                hintType, genus: pkmn.species.genera.find(isLanguage('en')).genus
+            });
+        }
+
         default: return Rx.Observable.throw(
             new Error(`Unknown hint type '${hintType}'`)
         );
@@ -96,7 +102,7 @@ function quizPokemonObservable(cache, guessesObs) {
             .map(pkmn => pkmn.name)
             .map(fixPokemonName);
 
-        const hintTypesObs = Rx.Observable.of('stat', 'type');
+        const hintTypesObs = Rx.Observable.of('genus', 'stat', 'type');
 
         const hintsObs =
             randomPokemonObs
@@ -143,6 +149,7 @@ function hintToString(hint) {
     switch(hint.hintType) {
         case 'type': return `Its type is **${hint.types.join('-')}**`;
         case 'stat': return `Its base ${hint.stat} is **${hint.baseValue}**`;
+        case 'genus': return `It is known as the **${hint.genus} Pokemon**`;
 
         default: '???';
     }

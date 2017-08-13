@@ -28,3 +28,7 @@ export async function getRandomPokemon(cache) {
 export async function getTypeByName(cache, name) {
     return await get(cache, `${baseUrl}/type/${name}/`);
 }
+
+export async function getStatByName(cache, name) {
+    return await get(cache, `${baseUrl}/stat/${name}/`);
+}

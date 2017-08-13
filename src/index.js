@@ -7,7 +7,7 @@ import Discord from 'discord.js';
 import Keyv from 'keyv';
 import randomItem from 'random-item';
 
-import { getRandomPokemon, getTypeByName } from './pokemon';
+import { getRandomPokemon, getTypeByName, getStatByName } from './pokemon';
 import { minLevenshtein, thisAsParam } from './util';
 
 const client = new Discord.Client();
@@ -52,6 +52,20 @@ function getHintObservable(cache, pkmn, hintType) {
             }))
         }
 
+        case 'stat': {
+            return Rx.Observable.of(randomItem(pkmn.stats))
+            .mergeMap(stat =>
+                Rx.Observable.from(
+                    getStatByName(cache, stat.stat.name)
+                )
+                .map(statData => ({
+                    hintType,
+                    stat: statData.names.find(isLanguage('en')).name,
+                    baseValue: stat.base_stat
+                }))
+            )
+        }
+
         default: return Rx.Observable.throw(
             new Error(`Unknown hint type '${hintType}'`)
         );
@@ -82,7 +96,7 @@ function quizPokemonObservable(cache, guessesObs) {
             .map(pkmn => pkmn.name)
             .map(fixPokemonName);
 
-        const hintTypesObs = Rx.Observable.of('type', 'type', 'type');
+        const hintTypesObs = Rx.Observable.of('stat', 'type');
 
         const hintsObs =
             randomPokemonObs
@@ -128,6 +142,7 @@ function quizPokemonObservable(cache, guessesObs) {
 function hintToString(hint) {
     switch(hint.hintType) {
         case 'type': return `Its type is **${hint.types.join('-')}**`;
+        case 'stat': return `Its base ${hint.stat} is **${hint.baseValue}**`;
 
         default: '???';
     }

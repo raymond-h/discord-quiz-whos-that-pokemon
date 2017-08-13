@@ -3,3 +3,5 @@ lib/
 
 *.log
 env
+testmodel.js
+out.json

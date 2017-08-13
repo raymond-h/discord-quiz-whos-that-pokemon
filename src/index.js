@@ -88,9 +88,12 @@ function quizPokemonObservable(cache, guessesObs) {
             randomPokemonObs
             .mergeMap(pkmn =>
                 hintTypesObs
-                .mergeMap(hintType => getHintObservable(cache, pkmn, hintType))
-            )
-            .toArray();
+                .map(hintType =>
+                    getHintObservable(cache, pkmn, hintType)
+                )
+                .combineAll()
+                .last()
+            );
 
         return Rx.Observable.combineLatest(
             randomPokemonObs, randomFlavorTextObs, nameObs, hintsObs

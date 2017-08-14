@@ -282,7 +282,10 @@ Promise.resolve()
     await Promise.all([
         startGameObs
         .mergeMap(channel =>
-            quizPokemonObservable(cache, msgObs)
+            quizPokemonObservable(
+                cache,
+                msgObs.filter(msg => msg.channel === channel)
+            )
             .repeat(50)
             .takeUntil(
                 endGameObs.filter(endChan => channel == endChan)

@@ -284,11 +284,11 @@ Promise.resolve()
         .mergeMap(channel =>
             quizPokemonObservable(
                 cache,
-                msgObs.filter(msg => msg.channel === channel)
+                msgObs.filter(msg => msg.channel.id === channel.id)
             )
             .repeat(50)
             .takeUntil(
-                endGameObs.filter(endChan => channel == endChan)
+                endGameObs.filter(endChan => channel.id === endChan.id)
             )
             .concat(Rx.Observable.of({ type: 'end' }))
             .catch(error => Rx.Observable.of({ type: 'error', error }))
